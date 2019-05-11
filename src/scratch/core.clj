@@ -12,21 +12,48 @@
 (def cols 10)
 (def board (atom (vec (repeat rows (vec (repeat cols 0))))))
 (def piece (atom {:type 0 :position [0 0] :orientation 0}))
+(def next-piece (atom {:type 0 :orientation 0}))
+
 
 (def offset 20)
 (def piece-width 20)
 (def padding 2)
 (def board-width (* (+ piece-width padding) cols))
 (def board-height (* (+ piece-width padding) rows))
-(def game-width (+ (* offset 2) (+ board-width (* (+ piece-width padding) 4) (* padding 4))))
+(def game-width (+ (* offset 2) (+ board-width (* (+ piece-width padding) 6) (* padding 6))))
 (def game-height (+ (* offset 2) board-height))
-(def bg-color Color/gray)
+(def next-piece-offset (+ (* offset 2) board-width))
+(def bg-color (Color. 230 230 230))
+
+(def pieces
+  [{:type 0
+    :rotations
+    [:orientation 0
+     :matrix
+     [[0 0 1 0]
+      [0 0 1 0]
+      [0 0 1 0]
+      [0 0 1 0]]]}])
+
+(defn get-piece-matrix
+  [t o]
+  (
+      
+(def pieces
+ 
+  (.translate g 0 (- offset))
+  (.translate g (- next-piece-offset) (- offset)))
 
 (defn paint-board [g]
   (.translate g offset offset)
   (doseq [x (range cols)
           y (range rows)]
-      (.drawRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))
+    (.drawRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width))
+  (.translate g (- offset) (- offset)))
+
+(defn paint-game [g]
+  (paint-board g)
+  (paint-next-piece g))
 
 (defn update-board []
   nil)
@@ -36,7 +63,7 @@
     (paintComponent [g]
       (proxy-super paintComponent g)
       ;(. g drawString "Hi There" 10 10)
-      (paint-board g))
+      (paint-game g))
     (actionPerformed [e]
       (update-board)
       (.repaint this))
