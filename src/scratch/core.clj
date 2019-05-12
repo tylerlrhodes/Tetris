@@ -67,9 +67,8 @@
         matrix (get-piece-matrix type orientation)]
     (dotimes [x (count (matrix 0))]
       (dotimes [y (count matrix)]
-        (println x y)
-        (if (= 1 1);((matrix y) x))
-          (.drawRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))))
+        (if (= 1 ((matrix y) x))
+          (.fillRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))))
   (.translate g 0 (- offset))
   (.translate g (- next-piece-offset) (- offset)))
 
@@ -91,10 +90,13 @@
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
       (proxy-super paintComponent g)
-      ;(. g drawString "Hi There" 10 10)
       (paint-game g))
     (actionPerformed [e]
+      (-> (.getSource e)
+          (.stop))
       (update-board)
+      (-> (.getSource e)
+          (.start))
       (.repaint this))
     (keyPressed [e]
       (println e))
