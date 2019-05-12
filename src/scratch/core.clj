@@ -28,19 +28,48 @@
 (def pieces
   [{:type 0
     :rotations
-    [:orientation 0
-     :matrix
-     [[0 0 1 0]
-      [0 0 1 0]
-      [0 0 1 0]
-      [0 0 1 0]]]}])
+    [{:orientation 0
+      :matrix
+      [[0 0 1 0]
+       [0 0 1 0]
+       [0 0 1 0]
+       [0 0 1 0]]}
+     {:orientation 1
+      :matrix
+      [[0 0 0 0]
+       [0 0 0 0]
+       [1 1 1 1]
+       [0 0 0 0]]}
+     {:orientation 2
+      :matrix
+      [[0 1 0 0]
+       [0 1 0 0]
+       [0 1 0 0]
+       [0 1 0 0]]}
+     {:orientation 3
+      :matrix
+      [[0 0 0 0]
+       [1 1 1 1]
+       [0 0 0 0]
+       [0 0 0 0]]}]}])
 
 (defn get-piece-matrix
   [t o]
-  (
-      
-(def pieces
- 
+  (:matrix ((:rotations (pieces t)) o)))
+
+(defn paint-next-piece [g]
+  (.translate g next-piece-offset offset)
+  (.drawString g "Next Piece:" 0 0)
+  (.translate g 0 offset)
+  (let [piece @next-piece
+        orientation 0
+        type (:type piece)
+        matrix (get-piece-matrix type orientation)]
+    (dotimes [x (count (matrix 0))]
+      (dotimes [y (count matrix)]
+        (println x y)
+        (if (= 1 1);((matrix y) x))
+          (.drawRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))))
   (.translate g 0 (- offset))
   (.translate g (- next-piece-offset) (- offset)))
 
