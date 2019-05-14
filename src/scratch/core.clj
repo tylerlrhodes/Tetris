@@ -13,7 +13,7 @@
 (def board (atom (vec (repeat rows (vec (repeat cols 0))))))
 (def piece (atom {:type 0 :position [0 0] :orientation 0}))
 (def next-piece (atom {:type 0 :orientation 0}))
-
+(def new-piece? (atom true))
 
 (def offset 20)
 (def piece-width 20)
@@ -57,6 +57,45 @@
   [t o]
   (:matrix ((:rotations (pieces t)) o)))
 
+(defn get-piece-width
+  [t]
+  (count ((get-piece-matrix t 0) 0)))
+
+(defn get-starting-location
+  [piece]
+  ;; get the width of the piece
+  (let [piece-width (get-piece-width (:type piece))]
+    [(/ (- cols piece-width) 2) 0]))
+
+
+;; How to handle the piece and the board?
+
+;; When the game starts the board is empty
+;; We need to generate the first piece (or take it from next-piece)
+;; We determine the starting position of the piece
+;; We check if there is a collision with the new piece and the board
+;; if there is it's game over!
+
+;; At any time the current piece can be rotated via a keypress
+;; We need to see if rotating it in the given direction will cause a collision
+;; in which case we don't do the rotation in the given direction
+
+;; At any time the current piece can be moved down, left, or right
+;; If there is a collision to the left or right, the piece cannot move in that direction
+;; If there is a collision with the piece to the bottom, the piece is frozen on the board
+;; and the board is updated to reflect the new piece being held in place
+
+;; After the board is updated due to a downward collision, the board
+;; is scanned to see if any complete row(s) have been made
+;; if so 
+(defn update-board []
+  (if (@new-piece?)
+    ; swap next piece with piece
+                                        ; update @piece to starting location)
+    nil
+  ))
+
+
 (defn paint-next-piece [g]
   (.translate g next-piece-offset offset)
   (.drawString g "Next Piece:" 0 0)
@@ -83,9 +122,6 @@
   (paint-board g)
   (paint-next-piece g))
 
-(defn update-board []
-  nil)
-  
 (defn game-panel [frame]
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
