@@ -106,6 +106,7 @@
 
 ;; generate a random "next-piece"
 
+
 (defn gen-random-piece
   []
   (let [idx (int (rand (count pieces)))
@@ -190,10 +191,36 @@
   (paint-piece g)
   (paint-next-piece g))
 
+(defn off-board? [p]
+  "Check if the piece is off the board")
+
+(defn piece-hit? [p]
+  "Check if the piece collides on the board")
+
+(defn collision? [p]
+  "testing for collision"
+  ;; if any of the pieces set squares moved off the board a collision occured
+  ;; if any of the pieces set squares are in the same position as a set square on the board, a collision occurred
+  (if (off-board? p)
+    true
+    (if (piece-hit? p)
+      true
+      false)))
+
+(defn try-move-left []
+  (let [moved @piece
+        moved (assoc moved :position [(- ((:position moved) 0) 1) ((:position moved) 1)])]
+    ;; check if it can move
+    ;; for each row in the "moved" piece, is there a collisin with another piece on the left
+    ;; or does it move off the board?
+    (if (collision? moved)
+      (println "collision")
+      (println moved))))
+
 (defn move
   [key-code]
   (cond
-    (= key-code VK_LEFT) (println "left")
+    (= key-code VK_LEFT) (try-move-left)
     (= key-code VK_RIGHT) (println "right")
     (= key-code VK_DOWN) (println "down")
     (= key-code VK_SHIFT) (println "shift")
