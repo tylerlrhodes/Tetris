@@ -191,11 +191,33 @@
   (paint-piece g)
   (paint-next-piece g))
 
+(defn off-left? [p left]
+  "checks if piece is off to the left"
+  false)
+
+(defn off-right? [p right]
+  "checks if piece is off to the right"
+  false)
+
+(defn off-bottom? [p bottom]
+  "checks if piece is off to the bottom"
+  false)
+
 (defn off-board? [p]
-  "Check if the piece is off the board")
+  "Check if the piece is off the board"
+  (let [left ((:position p) 0)
+        right (+ ((:position p) 0) (- (count ((get-piece-matrix (:type p) 0) 0)) 1))
+        bottom (+ ((:position p) 1) (- (count (get-piece-matrix (:type p) 0)) 1))]
+    (cond
+      (neg? left) (off-left? p left)
+      (> (count (@board 0)) right) (off-right? p right)
+      (> (count @board) bottom) (off-bottom? p bottom)
+      :else
+      (println left " " right " " bottom))))
 
 (defn piece-hit? [p]
-  "Check if the piece collides on the board")
+  "Check if the piece collides on the board"
+  false)
 
 (defn collision? [p]
   "testing for collision"
@@ -215,7 +237,8 @@
     ;; or does it move off the board?
     (if (collision? moved)
       (println "collision")
-      (println moved))))
+      (dosync
+       (ref-set piece moved)))))
 
 (defn move
   [key-code]
@@ -241,7 +264,8 @@
           (.start))
       (.repaint this))
     (keyPressed [e]
-      (move (.getKeyCode e)))
+      (move (.getKeyCode e))
+      (.repaint this))
     (keyReleased [e])
     (keyTyped [e])
     (getPreferredSize []
