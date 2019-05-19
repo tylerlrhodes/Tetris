@@ -191,13 +191,49 @@
   (paint-piece g)
   (paint-next-piece g))
 
+(defn first-set-position
+  [coll]
+  (first (keep-indexed
+          (fn [idx x]
+            (when (> x 0)
+              idx))
+          coll)))
+
 (defn off-left? [p left]
   "checks if piece is off to the left"
-  false)
+  ;; for each row in the piece
+  ;; get the left most set posistion
+  ;; add the index of that position to the pieces position
+  ;; if it is less than 0, it is off the board on the left
+  (let [matrix (get-piece-matrix (:type p) (:orientation p))]
+    (loop [row (matrix 0)
+           idx 1]
+      (let [pos (first-set-position row)]
+        (cond
+           (= idx (count matrix)) false
+           (nil? pos) (recur (matrix idx) (+ idx 1))
+           (< (+ pos left) 0) true
+           :else
+           (recur (matrix idx) (+ idx 1)))))))
 
 (defn off-right? [p right]
   "checks if piece is off to the right"
-  false)
+  ;; for each row in the piece
+  ;; get the right most set position
+  ;; get the distance of that set position from the width of the piece
+  ;; subtract the distance from the given position
+  ;; if the result is greater than the width of the board, it is off to the right
+  (let [matrix (get-piece-matrix (:type p) (:orientation p))
+        board-width (count (@board 0))]
+    (loop [row (matrix 0)
+           idx 1]
+      (let [pos (first-set-position (reverse row))]
+        (cond
+          (= idx (count matrix)) false
+          (nil? pos) (recur (matrix idx) (+ idx 1))
+          (= (- right pos) board-width) true
+          :else
+          (recur (matrix idx) (+ idx 1)))))))
 
 (defn off-bottom? [p bottom]
   "checks if piece is off to the bottom"
@@ -210,10 +246,10 @@
         bottom (+ ((:position p) 1) (- (count (get-piece-matrix (:type p) 0)) 1))]
     (cond
       (neg? left) (off-left? p left)
-      (> (count (@board 0)) right) (off-right? p right)
-      (> (count @board) bottom) (off-bottom? p bottom)
+      (> right (count (@board 0))) (off-right? p right)
+      (> bottom (count @board)) (off-bottom? p bottom)
       :else
-      (println left " " right " " bottom))))
+      false)))
 
 (defn piece-hit? [p]
   "Check if the piece collides on the board"
@@ -229,23 +265,32 @@
       true
       false)))
 
-(defn try-move-left []
+(defn try-move
+  [hf vf]
   (let [moved @piece
-        moved (assoc moved :position [(- ((:position moved) 0) 1) ((:position moved) 1)])]
+        moved (assoc moved :position [(hf ((:position moved) 0)) (vf ((:position moved) 1))])]
     ;; check if it can move
     ;; for each row in the "moved" piece, is there a collisin with another piece on the left
     ;; or does it move off the board?
     (if (collision? moved)
-      (println "collision")
-      (dosync
-       (ref-set piece moved)))))
+      false
+      (do
+        (dosync
+         (ref-set piece moved))))))
+
+(defn merge-board-and-piece
+  []
+  (println "merging board and piece"))
 
 (defn move
   [key-code]
   (cond
-    (= key-code VK_LEFT) (try-move-left)
-    (= key-code VK_RIGHT) (println "right")
-    (= key-code VK_DOWN) (println "down")
+    (= key-code VK_LEFT) (try-move dec identity)
+    (= key-code VK_RIGHT) (try-move inc identity)
+    (= key-code VK_DOWN)
+    (do
+      (if (not (try-move identity inc))
+        (merge-board-and-piece)))
     (= key-code VK_SHIFT) (println "shift")
     (= key-code VK_CONTROL) (println "control")
     :else
