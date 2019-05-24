@@ -25,6 +25,8 @@
 (def next-piece-offset (+ (* offset 2) board-width))
 (def bg-color (Color. 230 230 230))
 
+;; scratch
+
 (def pieces
   [{:type 0
     :rotations
@@ -79,6 +81,10 @@
   [t o]
   (:matrix ((:rotations (pieces t)) o)))
 
+(defn get-piece-height
+  [t]
+  (count (get-piece-matrix t 0)))
+
 (defn get-piece-width
   [t]
   (count ((get-piece-matrix t 0) 0)))
@@ -106,6 +112,30 @@
 
 ;; generate a random "next-piece"
 
+;; (comment
+;;  (let [y ((:position p) 1)
+;;        piece-bottom (+ y
+;;                        (get-piece-top
+;;                         (reverse
+;;                          (get-piece-matrix (:type p) (:orientation p)))))])
+  
+(defn merge-piece-and-board
+  [p b]
+ 
+    (reduce
+     (fn [m k]
+       (assoc m k
+              (reduce
+               #(assoc %1 %2 1)
+               (b k) ;; row of board
+               (map #(+ (%1 0)((:position p) 0))
+                    (filter #(when (> (%1 1) 0) true)
+                            (map-indexed
+                             vector
+                             (if (< k (get-piece-height (:type p)))
+                               ((get-piece-matrix (:type p) (:orientation p)) (+ y k))
+                               [])))))));; needs to be fixed
+     b (range (count b))))
 
 (defn gen-random-piece
   []
@@ -237,7 +267,15 @@
 
 (defn off-bottom? [p bottom]
   "checks if piece is off to the bottom"
-  false)
+  ;; subtract the distance to the bottom most set square from the height and subtract this from given bottom
+  ;; if this value is greater than the boards height than it is off the bottom
+  (let [bottom-set (- bottom
+                      (get-piece-top
+                       (vec (reverse
+                             (get-piece-matrix (:type p) (:orientation p))))))]
+    (if (= bottom-set (count @board))
+      true
+      false)))
 
 (defn off-board? [p]
   "Check if the piece is off the board"
