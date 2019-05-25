@@ -27,7 +27,7 @@
 
 ;; scratch
 
-(def pieces
+(def piecesk
   [{:type 0
     :rotations
     [{:orientation 0
@@ -118,24 +118,6 @@
 ;;                        (get-piece-top
 ;;                         (reverse
 ;;                          (get-piece-matrix (:type p) (:orientation p)))))])
-  
-(defn merge-piece-and-board
-  [p b]
- 
-    (reduce
-     (fn [m k]
-       (assoc m k
-              (reduce
-               #(assoc %1 %2 1)
-               (b k) ;; row of board
-               (map #(+ (%1 0)((:position p) 0))
-                    (filter #(when (> (%1 1) 0) true)
-                            (map-indexed
-                             vector
-                             (if (< k (get-piece-height (:type p)))
-                               ((get-piece-matrix (:type p) (:orientation p)) (+ y k))
-                               [])))))));; needs to be fixed
-     b (range (count b))))
 
 (defn gen-random-piece
   []
@@ -269,12 +251,16 @@
   "checks if piece is off to the bottom"
   ;; subtract the distance to the bottom most set square from the height and subtract this from given bottom
   ;; if this value is greater than the boards height than it is off the bottom
+  (println "bottom = " bottom)
   (let [bottom-set (- bottom
                       (get-piece-top
                        (vec (reverse
                              (get-piece-matrix (:type p) (:orientation p))))))]
+    (println bottom "bs - " bottom-set)
     (if (= bottom-set (count @board))
-      true
+      (do
+        (println "off bottom")
+        true)
       false)))
 
 (defn off-board? [p]
@@ -282,12 +268,12 @@
   (let [left ((:position p) 0)
         right (+ ((:position p) 0) (- (count ((get-piece-matrix (:type p) 0) 0)) 1))
         bottom (+ ((:position p) 1) (- (count (get-piece-matrix (:type p) 0)) 1))]
-    (cond
-      (neg? left) (off-left? p left)
-      (> right (count (@board 0))) (off-right? p right)
-      (> bottom (count @board)) (off-bottom? p bottom)
-      :else
-      false)))
+    (or
+      (if (neg? left) (off-left? p left))
+      (if (> right (- (count (@board 0)) 1)) (off-right? p right))
+      (if (> bottom (- (count @board) 1)) (off-bottom? p bottom)))))
+      ;; :else
+      ;; false)))
 
 (defn piece-hit? [p]
   "Check if the piece collides on the board"
@@ -316,9 +302,32 @@
         (dosync
          (ref-set piece moved))))))
 
+;; y - y coordinate of piece
+;; k - current row being merged
+;; h - height of piece
+
+;; I want k - y
+
+;; there may be a more elegant way of doing this with update-in
 (defn merge-board-and-piece
-  []
-  (println "merging board and piece"))
+  [b p]
+  (let [y ((:position p) 1)]
+    (reduce
+     (fn [m k]
+       (assoc m k
+              (reduce
+               #(assoc %1 %2 1)
+               (b k) ;; row of board
+               (map #(+ (%1 0)((:position p) 0))
+                    (filter #(when (> (%1 1) 0) true)
+                            (map-indexed
+                             vector
+                             ;; if this board row contains a row of the piece
+                             (if (and (< (- k y) (get-piece-height (:type p)))
+                                      (>= k y))
+                               ((get-piece-matrix (:type p) (:orientation p)) (- k y))
+                               [])))))));; needs to be fixed
+     b (range (count b)))))
 
 (defn move
   [key-code]
@@ -328,7 +337,8 @@
     (= key-code VK_DOWN)
     (do
       (if (not (try-move identity inc))
-        (merge-board-and-piece)))
+        (dosync
+         (alter board merge-board-and-piece @piece))))
     (= key-code VK_SHIFT) (println "shift")
     (= key-code VK_CONTROL) (println "control")
     :else
