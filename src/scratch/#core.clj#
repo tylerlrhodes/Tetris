@@ -277,10 +277,6 @@
       ;; :else
       ;; false)))
 
-(defn piece-hit? [p]
-  "Check if the piece collides on the board"
-  false)
-
 (defn collision? [p]
   "testing for collision"
   ;; if any of the pieces set squares moved off the board a collision occured
@@ -303,6 +299,12 @@
       (do
         (dosync
          (ref-set piece moved))))))
+
+
+
+(defn piece-hit? [p]
+  "Check if the piece collides on the board"
+  false)
 
 ;; y - y coordinate of piece
 ;; k - current row being merged
