@@ -277,7 +277,8 @@
       ;; :else
       ;; false)))
 
-    
+;; i think this can be simplified a lot
+;; what a mess
 (defn piece-hit? [b p]
   "Check if the piece collides on the board"
   (let [pt-x ((:position p) 0)
