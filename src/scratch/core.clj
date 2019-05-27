@@ -277,10 +277,6 @@
       ;; :else
       ;; false)))
 
-(defn piece-hit? [p]
-  "Check if the piece collides on the board"
-  false)
-
 (defn collision? [p]
   "testing for collision"
   ;; if any of the pieces set squares moved off the board a collision occured
@@ -303,6 +299,35 @@
       (do
         (dosync
          (ref-set piece moved))))))
+
+
+
+;; does the piece collide with a set location on the board?
+;;
+
+(defn tmp [b p]
+  (let [y ((:position p) 1)
+        x ((:position p) 0)]
+    
+(defn piece-hit? [b p]
+  "Check if the piece collides on the board"
+  (let [pt-x ((:position p) 0)
+        pt-y ((:position p) 1)
+        set-pts
+        (reduce
+         #(if (> (count (%2 1)) 0) (conj [%2] %1) %1)
+         (map-indexed
+          (fn [idx i]
+            [(+ idx pt-y)
+             (map #(+ (%1 0) pt-x)
+                  (filter
+                   #(when (> (%1 1) 0) true)
+                   (map-indexed vector i)))])
+          p))]
+    ;; now reduce to true if the piece collides with any on the board
+    (reduce
+     #(if (get
+    
 
 ;; y - y coordinate of piece
 ;; k - current row being merged
