@@ -277,13 +277,44 @@
       ;; :else
       ;; false)))
 
+    
+(defn piece-hit? [b p]
+  "Check if the piece collides on the board"
+  (let [pt-x ((:position p) 0)
+        pt-y ((:position p) 1)
+        set-pts
+        (reduce
+         #(if (> (count (%2 1)) 0)
+            (concat
+             (for [y (vector (first %2))
+                   x (mapcat identity (rest %2))]
+               [y x]);;[%2]
+             %1)
+            %1)
+         []
+         (map-indexed
+          (fn [idx i]
+            [(+ idx pt-y)
+             (map #(+ (%1 0) pt-x)
+                  (filter
+                   #(when (> (%1 1) 0) true)
+                   (map-indexed vector i)))])
+          (get-piece-matrix (:type p) (:orientation p))))]
+    ;; now reduce to true if the piece collides with any on the board
+    (println set-pts)
+    (reduce
+     #(or %1
+          (> (get-in b %2) 0))
+     false
+     set-pts)))
+
 (defn collision? [p]
   "testing for collision"
   ;; if any of the pieces set squares moved off the board a collision occured
   ;; if any of the pieces set squares are in the same position as a set square on the board, a collision occurred
   (if (off-board? p)
     true
-    (if (piece-hit? p)
+    (if (piece-hit? @board p)
       true
       false)))
 
@@ -304,29 +335,6 @@
 
 ;; does the piece collide with a set location on the board?
 ;;
-
-(defn tmp [b p]
-  (let [y ((:position p) 1)
-        x ((:position p) 0)]
-    
-(defn piece-hit? [b p]
-  "Check if the piece collides on the board"
-  (let [pt-x ((:position p) 0)
-        pt-y ((:position p) 1)
-        set-pts
-        (reduce
-         #(if (> (count (%2 1)) 0) (conj [%2] %1) %1)
-         (map-indexed
-          (fn [idx i]
-            [(+ idx pt-y)
-             (map #(+ (%1 0) pt-x)
-                  (filter
-                   #(when (> (%1 1) 0) true)
-                   (map-indexed vector i)))])
-          p))]
-    ;; now reduce to true if the piece collides with any on the board
-    (reduce
-     #(if (get
     
 
 ;; y - y coordinate of piece
