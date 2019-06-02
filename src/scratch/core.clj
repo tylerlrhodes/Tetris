@@ -11,6 +11,7 @@
 (def rows 20)
 (def cols 10)
 (def board (ref (vec (repeat rows (vec (repeat cols 0))))))
+(def score (ref 0))
 (def piece (ref {:type 0 :position [0 0] :orientation 0}))
 (def next-piece (ref nil))
 (def new-piece? (ref true))
@@ -253,15 +254,15 @@
   "checks if piece is off to the bottom"
   ;; subtract the distance to the bottom most set square from the height and subtract this from given bottom
   ;; if this value is greater than the boards height than it is off the bottom
-  (println "bottom = " bottom)
+  ;;(println "bottom = " bottom)
   (let [bottom-set (- bottom
                       (get-piece-top
                        (vec (reverse
                              (get-piece-matrix (:type p) (:orientation p))))))]
-    (println bottom "bs - " bottom-set)
+    ;;(println bottom "bs - " bottom-set)
     (if (= bottom-set (count @board))
       (do
-        (println "off bottom")
+        ;;(println "off bottom")
         true)
       false)))
 
@@ -302,7 +303,7 @@
                    (map-indexed vector i)))])
           (get-piece-matrix (:type p) (:orientation p))))]
     ;; now reduce to true if the piece collides with any on the board
-    (println set-pts)
+    ;;(println set-pts)
     (reduce
      #(or %1
           (> (get-in b %2) 0))
@@ -380,6 +381,28 @@
          :orientation
          (mod (- (:orientation p) 1) 4)))
 
+(defn remove-made-lines
+  [b]
+  (reduce
+   (fn [coll i]
+     (if (every? #(when (= %1 1) true) i)
+       coll
+       (conj coll i)))
+   []
+   b))
+
+(defn calculate-score
+  [score made-lines]
+  )
+
+(defn fill-lines
+  [b]
+  (into (vec
+         (repeat (- rows
+                    (count b))
+                 (vec (repeat cols 0))))
+        b))
+         
 (defn move
   [key-code]
   (cond
@@ -390,6 +413,9 @@
       (if (not (try-move identity inc))
         (dosync
          (alter board merge-board-and-piece @piece)
+         (alter board remove-made-lines)
+         (alter score calculate-score @board)
+         (alter board fill-lines)
          (init-pieces)
          (if (collision? @piece)
            (restart-game)))))
