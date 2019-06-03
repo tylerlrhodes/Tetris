@@ -14,7 +14,7 @@
 (def score (ref 0))
 (def piece (ref {:type 0 :position [0 0] :orientation 0}))
 (def next-piece (ref nil))
-(def new-piece? (ref true))
+(def message (ref (str "Last Score: ")))
 
 (def offset 20)
 (def piece-width 20)
@@ -25,6 +25,13 @@
 (def game-height (+ (* offset 2) board-height))
 (def next-piece-offset (+ (* offset 2) board-width))
 (def bg-color (Color. 230 230 230))
+
+(defn reset-game
+  []
+  (dosync
+   (ref-set board (vec (repeat rows (vec (repeat cols 0)))))
+   (ref-set score 0)
+   (ref-set next-piece nil)))
 
 ;; scratch
 
@@ -159,16 +166,11 @@
 ;; is scanned to see if any complete row(s) have been made
 ;; if so 
 
-
-(defn update-board []
-  (if @new-piece?
-                                        ; swap next piece with piece
-                                        ; update @piece to starting location)
-    nil))
-
 (defn paint-next-piece [g]
   (.translate g next-piece-offset offset)
   (.drawString g (str "Score: " @score) 0 0)
+  (.translate g 0 offset)
+  (.drawString g @message 0 0)
   (.translate g 0 offset)
   (.drawString g "Next Piece:" 0 0)
   (.translate g 0 offset)
@@ -180,6 +182,7 @@
       (dotimes [y (count matrix)]
         (if (= 1 ((matrix y) x))
           (.fillRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))))
+  (.translate g 0 (- offset))
   (.translate g 0 (- offset))
   (.translate g 0 (- offset))
   (.translate g (- next-piece-offset) (- offset)))
@@ -369,9 +372,6 @@
                                [])))))));; needs to be fixed
      b (range (count b)))))
 
-(defn restart-game []
-  (println "game over"))
-
 (defn rotate-piece-left
   [p]
   (assoc p
@@ -422,7 +422,10 @@
          (alter board fill-lines)
          (init-pieces)
          (if (collision? @piece)
-           (restart-game)))))
+           (do
+             (ref-set message (str "Last Score: " @score))
+             (reset-game)
+             (init-pieces))))))
     (= key-code VK_SPACE)
     (do
       (dosync
@@ -436,18 +439,29 @@
     :else
     (println key-code)))
 
+(defn get-delay
+  [score]
+  (cond
+    (< score 10) 3000
+    (< score 20) 2500
+    (< score 30) 2000
+    (< score 40) 1500
+    (< score 50) 1000
+    :else
+    500))
+
 (defn game-panel [frame]
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
       (proxy-super paintComponent g)
       (paint-game g))
     (actionPerformed [e]
-      (-> (.getSource e)
-          (.stop))
-      (move VK_DOWN)
-      (-> (.getSource e)
-          (.start))
-      (.repaint this))
+      (let [timer (.getSource e)]
+        (.stop timer)
+        (move VK_DOWN)
+        (.setInitialDelay timer (get-delay @score))
+        (.start timer)
+        (.repaint this)))
     (keyPressed [e]
       (move (.getKeyCode e))
       (.repaint this))
