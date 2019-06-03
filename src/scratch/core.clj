@@ -168,6 +168,8 @@
 
 (defn paint-next-piece [g]
   (.translate g next-piece-offset offset)
+  (.drawString g (str "Score: " @score) 0 0)
+  (.translate g 0 offset)
   (.drawString g "Next Piece:" 0 0)
   (.translate g 0 offset)
   (let [piece      @next-piece
@@ -178,6 +180,7 @@
       (dotimes [y (count matrix)]
         (if (= 1 ((matrix y) x))
           (.fillRect g (* x (+ padding piece-width)) (* y (+ padding piece-width)) piece-width piece-width)))))
+  (.translate g 0 (- offset))
   (.translate g 0 (- offset))
   (.translate g (- next-piece-offset) (- offset)))
 
@@ -392,8 +395,9 @@
    b))
 
 (defn calculate-score
-  [score made-lines]
-  )
+  [score b]
+  (+ score (- rows
+              (count b))))
 
 (defn fill-lines
   [b]
@@ -440,7 +444,7 @@
     (actionPerformed [e]
       (-> (.getSource e)
           (.stop))
-      (update-board)
+      (move VK_DOWN)
       (-> (.getSource e)
           (.start))
       (.repaint this))
