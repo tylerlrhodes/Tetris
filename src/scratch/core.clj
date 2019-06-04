@@ -66,24 +66,134 @@
     :rotations
     [{:orientation 0
       :matrix
-      [[0 0 0]
-       [0 1 0]
+      [[1 0 0]
+       [1 1 1]
        [0 0 0]]}
      {:orientation 1
       :matrix
-      [[0 0 0]
+      [[0 1 1]
        [0 1 0]
-       [0 0 0]]}
+       [0 1 0]]}
      {:orientation 2
       :matrix
       [[0 0 0]
-       [0 1 0]
-       [0 0 0]]}
+       [1 1 1]
+       [0 0 1]]}
      {:orientation 3
       :matrix
-      [[0 0 0]
+      [[0 1 0]
        [0 1 0]
-       [0 0 0]]}]}])
+       [1 1 0]]}]}
+   {:type 2
+    :rotations
+    [{:orientation 0
+      :matrix
+      [[0 0 1]
+       [1 1 1]
+       [0 0 0]]}
+     {:orientation 1
+      :matrix
+      [[0 1 0]
+       [0 1 0]
+       [0 1 1]]}
+     {:orientation 2
+      :matrix
+      [[0 0 0]
+       [1 1 1]
+       [1 0 0]]}
+     {:orientation 3
+      :matrix
+      [[1 1 0]
+       [0 1 0]
+       [0 1 0]]}]}
+   {:type 3
+    :rotations
+    [{:orientation 0
+      :matrix
+      [[0 1 1 0]
+       [0 1 1 0]
+       [0 0 0 0]]}
+     {:orientation 1
+      :matrix
+      [[0 1 1 0]
+       [0 1 1 0]
+       [0 0 0 0]]}
+     {:orientation 2
+      :matrix
+      [[0 1 1 0]
+       [0 1 1 0]
+       [0 0 0 0]]}
+     {:orientation 3
+      :matrix
+      [[0 1 1 0]
+       [0 1 1 0]
+       [0 0 0 0]]}]}
+   {:type 4
+    :rotations
+    [{:orientation 0
+      :matrix
+      [[0 1 1]
+       [1 1 0]
+       [0 0 0]]}
+     {:orientation 1
+      :matrix
+      [[0 1 0]
+       [0 1 1]
+       [0 0 1]]}
+     {:orientation 2
+      :matrix
+      [[0 0 0]
+       [0 1 1]
+       [1 1 0]]}
+     {:orientation 3
+      :matrix
+      [[1 0 0]
+       [1 1 0]
+       [0 1 0]]}]}
+   {:type 5
+    :rotations
+    [{:orientation 0
+      :matrix
+      [[0 1 0]
+       [1 1 1]
+       [0 0 0]]}
+     {:orientation 1
+      :matrix
+      [[0 1 0]
+       [0 1 1]
+       [0 1 0]]}
+     {:orientation 2
+      :matrix
+      [[0 0 0]
+       [1 1 1]
+       [0 1 0]]}
+     {:orientation 3
+      :matrix
+      [[0 1 0]
+       [1 1 0]
+       [0 1 0]]}]}
+   {:type 6
+    :rotations
+    [{:orientation 0
+      :matrix
+      [[1 1 0]
+       [0 1 1]
+       [0 0 0]]}
+     {:orientation 1
+      :matrix
+      [[0 0 1]
+       [0 1 1]
+       [0 1 0]]}
+     {:orientation 2
+      :matrix
+      [[0 0 0]
+       [1 1 0]
+       [0 1 1]]}
+     {:orientation 3
+      :matrix
+      [[0 1 0]
+       [1 1 0]
+       [1 0 0]]}]}])
 
 (defn get-piece-matrix
   [t o]
@@ -230,12 +340,13 @@
     (loop [row (matrix 0)
            idx 1]
       (let [pos (first-set-position row)]
+        (println idx)
         (cond
-           (= idx (count matrix)) false
-           (nil? pos) (recur (matrix idx) (+ idx 1))
-           (< (+ pos left) 0) true
-           :else
-           (recur (matrix idx) (+ idx 1)))))))
+          (> idx (- (count matrix) 0)) (do (println row idx "shit") false)
+          (nil? pos) (recur (matrix idx) (+ idx 1))
+          (< (+ pos left) 0) true
+          :else
+          (recur (matrix idx) (+ idx 1)))))))
 
 (defn off-right? [p right]
   "checks if piece is off to the right"
@@ -250,9 +361,9 @@
            idx 1]
       (let [pos (first-set-position (reverse row))]
         (cond
-          (= idx (count matrix)) false
           (nil? pos) (recur (matrix idx) (+ idx 1))
           (= (- right pos) board-width) true
+          (= idx (count matrix)) false
           :else
           (recur (matrix idx) (+ idx 1)))))))
 
@@ -312,7 +423,10 @@
     ;;(println set-pts)
     (reduce
      #(or %1
-          (> (get-in b %2) 0))
+          (and
+           (>= (second %2) 0)
+           (< (second %2) cols)
+           (>= (get-in b %2) 1)))
      false
      set-pts)))
 
