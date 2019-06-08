@@ -1,14 +1,19 @@
-# scratch
-
-A Clojure library designed to ... well, that part is up to you.
+# Tetris Clone
 
 ## Usage
 
-FIXME
+lein run
+
+From the REPL:
+
+(start-game) - to start the game
+
+(stop-game) - to stop the game
+
 
 ## License
 
-Copyright © 2019 FIXME
+Copyright © 2019 Tyler Rhodes
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

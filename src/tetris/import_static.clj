@@ -13,7 +13,7 @@
 
 (ns ^{:author "Stuart Sierra",
       :doc "Import static Java methods/fields into Clojure"}
-  scratch.import-static
+  tetris.import-static
   (:use clojure.set))
 
 (defmacro import-static

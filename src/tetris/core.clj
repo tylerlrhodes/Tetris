@@ -1,6 +1,6 @@
-(ns scratch.core
+(ns tetris.core
   (:gen-class)
-  (:require [scratch.import-static :as is])
+  (:require [tetris.import-static :as is])
   (:import (java.awt Color Dimension)
            (javax.swing JPanel JFrame Timer)
            (java.awt.event ActionListener KeyListener WindowEvent)))
@@ -578,7 +578,7 @@
       (Dimension. game-width game-height))))
 
 (defn game []
-  (let [frame (JFrame. "Test")
+  (let [frame (JFrame. "Tetris")
         panel (game-panel frame)
         timer (Timer. 3000 panel)]
     (init-pieces)
