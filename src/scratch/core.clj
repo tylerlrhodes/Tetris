@@ -331,42 +331,35 @@
           coll)))
 
 (defn off-left? [p left]
-  "checks if piece is off to the left"
-  ;; for each row in the piece
-  ;; get the left most set posistion
-  ;; add the index of that position to the pieces position
-  ;; if it is less than 0, it is off the board on the left
-  (let [matrix (get-piece-matrix (:type p) (:orientation p))]
-    (loop [row (matrix 0)
-           idx 1]
-      (let [pos (first-set-position row)]
-        (println idx)
-        (cond
-          (> idx (- (count matrix) 0)) (do (println row idx "shit") false)
-          (nil? pos) (recur (matrix idx) (+ idx 1))
-          (< (+ pos left) 0) true
-          :else
-          (recur (matrix idx) (+ idx 1)))))))
+  (reduce
+   #(or
+     %1
+     (let [pos (first-set-position %2)]
+       (if (not (nil? pos))
+         (if (< (+ (first-set-position %2)
+                   left)
+                0)
+           true
+           false)
+         false)))
+       false
+       (get-piece-matrix (:type p) (:orientation p))))
 
-(defn off-right? [p right]
-  "checks if piece is off to the right"
-  ;; for each row in the piece
-  ;; get the right most set position
-  ;; get the distance of that set position from the width of the piece
-  ;; subtract the distance from the given position
-  ;; if the result is greater than the width of the board, it is off to the right
-  (let [matrix (get-piece-matrix (:type p) (:orientation p))
-        board-width (count (@board 0))]
-    (loop [row (matrix 0)
-           idx 1]
-      (let [pos (first-set-position (reverse row))]
-        (cond
-          (nil? pos) (recur (matrix idx) (+ idx 1))
-          (= (- right pos) board-width) true
-          (= idx (count matrix)) false
-          :else
-          (recur (matrix idx) (+ idx 1)))))))
 
+(defn off-right? [p b right]
+  (reduce
+   #(or
+     %1
+     (let [pos (first-set-position (reverse %2))]
+       (if (not (nil? pos))
+         (if (= (- right pos)
+                (count (b 0)))
+           true
+           false)
+         false)))
+   false
+   (get-piece-matrix (:type p) (:orientation p))))
+  
 (defn off-bottom? [p bottom]
   "checks if piece is off to the bottom"
   ;; subtract the distance to the bottom most set square from the height and subtract this from given bottom
@@ -390,7 +383,7 @@
         bottom (+ ((:position p) 1) (- (count (get-piece-matrix (:type p) 0)) 1))]
     (or
       (if (neg? left) (off-left? p left))
-      (if (> right (- (count (@board 0)) 1)) (off-right? p right))
+      (if (> right (- (count (@board 0)) 1)) (off-right? p @board right))
       (if (> bottom (- (count @board) 1)) (off-bottom? p bottom)))))
       ;; :else
       ;; false)))
